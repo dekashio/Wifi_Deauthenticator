@@ -5,7 +5,6 @@ import subprocess
 import threading
 import time
 from datetime import datetime
-
 import dropbox as dropbox
 from scapy.layers.dot11 import Dot11Deauth, RadioTap, Dot11
 from scapy.layers.eap import EAPOL
