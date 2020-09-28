@@ -41,7 +41,7 @@ def check_monitor(iface):
             sys.exit()
 
     if monitor.decode().strip() != "monitor":
-        print(f"{bcolors.OKGREEN}WiFi Device not in monitor mode!{bcolors.ENDC}")
+        print(f"{bcolors.FAIL}WiFi Device not in monitor mode!{bcolors.ENDC}")
         answer = input('Let Deauther try to put WiFi interface into monitor mode?(y/n)')
         if answer == 'y':
             _try_monitor()
