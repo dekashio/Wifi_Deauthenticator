@@ -24,6 +24,7 @@ class bcolors:
     ENDC = '\033[0m'
 
 
+DROPBOX_KEY_PATH = 'DropboxKey.txt'
 packet_list = []
 
 
@@ -117,21 +118,27 @@ def send_deauth_packet():
 
 
 def dropbox_uploader():
-    dbx = dropbox.Dropbox('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
-    rootdir = os.getcwd()
-    print("Attempting to upload...")
-    for dir, dirs, files in os.walk(rootdir):
-        for file in files:
-            if file.endswith('.22000'):
-                try:
-                    file_path = os.path.join(dir, file)
-                    dest_path = os.path.join('/', file)
-                    if os.stat(file_path).st_size != 0:
-                        print('Uploading %s to %s' % (file_path, dest_path))
-                        with open(file_path, 'rb') as f:
-                            dbx.files_upload(f.read(), dest_path, mode=dropbox.files.WriteMode.overwrite, mute=True)
-                except Exception as err:
-                    print(f"{bcolors.FAIL}Failed to upload %s\n%s{bcolors.ENDC}" % (file, err))
+    try:
+        key_file_handle=open(DROPBOX_KEY_PATH,'r')
+        dropbox_key = key_file_handle.read()
+        dbx = dropbox.Dropbox(dropbox_key)
+        rootdir = os.getcwd()
+        print("Attempting to upload...")
+        print("Using key " + dropbox_key);
+        for dir, dirs, files in os.walk(rootdir):
+            for file in files:
+                if file.endswith('.22000'):
+                    try:
+                        file_path = os.path.join(dir, file)
+                        dest_path = os.path.join('/', file)
+                        if os.stat(file_path).st_size != 0:
+                            print('Uploading %s to %s' % (file_path, dest_path))
+                            with open(file_path, 'rb') as f:
+                                dbx.files_upload(f.read(), dest_path, mode=dropbox.files.WriteMode.overwrite, mute=True)
+                    except Exception as err:
+                        print(f"{bcolors.FAIL}Failed to upload %s\n%s{bcolors.ENDC}" % (file, err))
+    except IOError:
+        print(f"{bcolors.FAIL}Cant find " + DROPBOX_KEY_PATH + f" file. Skipping upload... {bcolors.ENDC}\n")
 
 
 if __name__ == '__main__':
