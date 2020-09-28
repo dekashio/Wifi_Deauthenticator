@@ -23,8 +23,12 @@ class bcolors:
     FAIL = '\033[91m'
     ENDC = '\033[0m'
 
-
+# CONSTS
 DROPBOX_KEY_PATH = 'DropboxKey.txt'
+HS_TIMEOUT_AFTER_DEAUTH = 5 # In seconds
+DEFAULT_NETWORK_INTERFACE = "wlan0"
+ENABLE_DROPBOX_UPLOAD = False
+
 packet_list = []
 
 
@@ -68,22 +72,23 @@ __        __  _____     ____                   _   _
 
 def check_args():
     parser = argparse.ArgumentParser(description='Custom WiFi Deauthenticator')
-    parser.add_argument('-i', '--interface', help='Define Network Interface in Monitor Mode, Default: wlan0',
-                        default='wlan0', dest='iface')
+    parser.add_argument('-i', '--interface', help='Define Network Interface in Monitor Mode, Default: ' + DEFAULT_NETWORK_INTERFACE,
+                        default=DEFAULT_NETWORK_INTERFACE, dest='iface')
     parser.add_argument('-a', '--ap', help='AP MAC Address (UPPER), Default: None', required=True, dest='ap')
     parser.add_argument('-c', '--client', help='Client MAC Address (UPPER), Default: None', required=True,
                         dest='client')
     parser.add_argument('-C', '--channel', help='AP Channel, Default: None', type=int, required=True, dest='channel')
     parser.add_argument('-d', '--deauth', help='Number of Deauth packets to send, Default: 1', type=int, default='1',
                         dest='deauth_count')
-    parser.add_argument('-t', '--timeout', help='Number of seconds to wait for handshake after deauth, Default: 5',
-                        type=int, default='5', dest='timeout')
+    parser.add_argument('-t', '--timeout', help='Number of seconds to wait for handshake after deauth, Default: ' + str(HS_TIMEOUT_AFTER_DEAUTH),
+                        type=int, default=HS_TIMEOUT_AFTER_DEAUTH, dest='timeout')
     parser.add_argument('-p', '--pcap', help='PCAP file to save EAPOL Packets Automatically Appended Current Time, '
                                              'Default: sniffed_current_date.pcap', default='sniffed.pcap',
                         dest='pcap_file')
+    parser.add_argument('-u', '--upload', help='Upload to Drobox. Default= ' + str(ENABLE_DROPBOX_UPLOAD), default=ENABLE_DROPBOX_UPLOAD, action="store_true", dest="enable_upload")
     results = parser.parse_args()
     return results.iface, results.ap, results.client, results.channel, results.deauth_count, \
-           results.timeout, results.pcap_file
+           results.timeout, results.pcap_file, results.enable_upload
 
 
 def sniffer():
@@ -144,7 +149,7 @@ def dropbox_uploader():
 if __name__ == '__main__':
     is_root()
     print_banner()
-    iface, ap, client, channel, deauth_count, timeout, pcap_file = check_args()
+    iface, ap, client, channel, deauth_count, timeout, pcap_file, enable_upload = check_args()
     check_monitor(iface)
     pcap_file = os.path.splitext(pcap_file)[0] + '_' + datetime.now().strftime("%Y_%m_%d-%H-%M-%S") + '.pcap'  # Add
     # current time in the middle of pcap file name
@@ -158,5 +163,6 @@ if __name__ == '__main__':
     print(f"{bcolors.WARNING}Captured Total %s EAPOL Packets{bcolors.ENDC}" % (len(packet_list)), '\n')
     print('Packets Written to: %s' % (os.getcwd() + '/' + pcap_file))
     cap_converter()  # Function that converts pcap to hashcat 22000 mode.
-    dropbox_uploader()  # Automatic hash uploader
+    if enable_upload:
+        dropbox_uploader()  # Automatic hash uploader
     print(f"{bcolors.BGGREEN}Finished.{bcolors.ENDC}")
