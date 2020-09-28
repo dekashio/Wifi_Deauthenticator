@@ -56,6 +56,16 @@ def is_root():
         sys.exit()
 
 
+def print_banner():
+    print(r"""
+__        __  _____     ____                   _   _
+\ \      / (_)  ___( ) |  _ \  ___  __ _ _   _| |_| |__   ___ _ __ 
+ \ \ /\ / /| | |_  | | | | | |/ _ \/ _` | | | | __| '_ \ / _ \ '__|
+  \ V  V / | |  _| | | | |_| |  __/ (_| | |_| | |_| | | |  __/ |   
+   \_/\_/  |_|_|   |_| |____/ \___|\__,_|\__,_|\__|_| |_|\___|_|   
+    """)
+
+
 def check_args():
     parser = argparse.ArgumentParser(description='Custom WiFi Deauthenticator')
     parser.add_argument('-i', '--interface', help='Define Network Interface in Monitor Mode, Default: wlan0',
@@ -127,6 +137,7 @@ def dropbox_uploader():
 
 if __name__ == '__main__':
     is_root()
+    print_banner()
     iface, ap, client, channel, deauth_count, pcap_file = check_args()
     check_monitor(iface)
     pcap_file = os.path.splitext(pcap_file)[0] + '_' + datetime.now().strftime("%Y_%m_%d-%H-%M-%S") + '.pcap'  # Add
