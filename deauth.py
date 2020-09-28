@@ -37,11 +37,11 @@ def check_monitor(iface):
         subprocess.call('ip link set %s up' % iface, shell=True)
         if subprocess.check_output("iw dev %s info | grep type | cut -d ' ' -f 2" % iface, shell=True).decode() \
                 .strip() != "monitor":
-            print('Failed to set %s monitor mode. Exiting..' % iface)
+            print(f"{bcolors.FAIL}Failed to set %s monitor mode. Exiting..{bcolors.ENDC}" % iface)
             sys.exit()
 
     if monitor.decode().strip() != "monitor":
-        print('WiFi Device not in monitor mode!')
+        print(f"{bcolors.OKGREEN}WiFi Device not in monitor mode!{bcolors.ENDC}")
         answer = input('Let Deauther try to put WiFi interface into monitor mode?(y/n)')
         if answer == 'y':
             _try_monitor()
@@ -52,7 +52,7 @@ def check_monitor(iface):
 
 def is_root():
     if os.geteuid() != 0:
-        print("This Program must run with root privileges, Exiting...")
+        print(f"{bcolors.FAIL}This Program must run with root privileges, Exiting...{bcolors.ENDC}")
         sys.exit()
 
 
