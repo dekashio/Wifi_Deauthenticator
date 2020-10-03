@@ -6,7 +6,7 @@ Tries first PMKID attack then asks for permission to continue to deauth attack.
 
 Automatic Conversion to hashcat 22000 mode.
 
-Automatic upload to DropBox
+Automatic upload to Dropbox
 
 Requirements:
 
