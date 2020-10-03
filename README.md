@@ -13,3 +13,5 @@ Requirements:
 *hashcat-utils: https://github.com/hashcat/hashcat-utils V1.9 and up    
 *hcxdumptool: https://github.com/ZerBea/hcxdumptool V6.1.2 and up  
 *hcxtools: https://github.com/ZerBea/hcxtools V6.1.2 and up  
+
+# This tool is intended to work on Ubnutu / debian.
