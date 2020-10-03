@@ -42,7 +42,9 @@ def check_depends():
     if shutil.which("hcxdumptool") is None:
         print("Can't find hcxdumptool in PATH, Exiting..")
         sys.exit()
-
+    if shutil.which("hcxpcapngtool") is None:
+        print("Can't find hcxpcapngtool in PATH, Exiting..")
+        sys.exit()
 
 def check_monitor(iface):
     monitor = subprocess.check_output(f"iw dev {iface} info | grep type | cut -d ' ' -f 2", shell=True)
@@ -148,7 +150,7 @@ def try_pmkid(iface, pcap_file, channel, ap):
                         sys.exit(2)
 
                     return
-            
+
             except:
                 sys.exit(2)
                 pass
