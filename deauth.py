@@ -5,6 +5,7 @@ import subprocess
 import sys
 import threading
 import time
+import psutil
 from datetime import datetime
 import dropbox as dropbox
 import pyshark as pyshark
@@ -32,20 +33,36 @@ HS_TIMEOUT_AFTER_DEAUTH = 5  # In seconds
 DEFAULT_NETWORK_INTERFACE = "wlan0"
 ENABLE_DROPBOX_UPLOAD = False
 PMKID_TIMEOUT = 10  # In seconds
-packet_list = []
+PACKET_LIST = []
+DISTURBING_PROCESSES=['wpa_supplicant','airodump-ng']
+NECESSARY_TOOLS=['cap2hccapx.bin','hcxdumptool','hcxpcapngtool']
+
+def is_process_running(processName):
+    for proc in psutil.process_iter():
+        try:
+            pinfo = proc.as_dict(attrs=['pid', 'name'])
+            if processName.lower() in pinfo['name'].lower():
+                return True
+        except (psutil.NoSuchProcess, psutil.AccessDenied , psutil.ZombieProcess):
+            return False
+
+    return False
 
 
-def check_depends():
-    if shutil.which("cap2hccapx.bin") is None:
-        print("Can't find cap2hccapx.bin in PATH, Exiting..")
-        sys.exit()
-    if shutil.which("hcxdumptool") is None:
-        print("Can't find hcxdumptool in PATH, Exiting..")
-        sys.exit()
-    if shutil.which("hcxpcapngtool") is None:
-        print("Can't find hcxpcapngtool in PATH, Exiting..")
-        sys.exit()
+def check_depends():  
+    # Check and exit
+    is_root()
 
+    for tool in NECESSARY_TOOLS:
+        if shutil.which(tool) is None:
+            print(f"{bcolors.FAIL}Can't find {tool} in PATH, Exiting..{bcolors.ENDC}")
+            sys.exit()
+    print (f"{bcolors.OKGREEN}Checking depends... OK!{bcolors.ENDC}"
+    
+    # Check and warn
+    for proc in DISTURBING_PROCESSES:
+        if is_process_running(proc):
+            print(f"{bcolors.WARNING}Warning! {proc} process\service is running! It is strongly recommended to terminate it to avoid collisions.{bcolors.ENDC}")
 
 def check_monitor(iface):
     monitor = subprocess.check_output(f"iw dev {iface} info | grep type | cut -d ' ' -f 2", shell=True)
@@ -68,10 +85,12 @@ def check_monitor(iface):
             print('Exiting..')
             sys.exit()
 
+    print (f"{bcolors.OKGREEN}Monitor mode... OK!{bcolors.ENDC}"
+
 
 def is_root():
     if os.geteuid() != 0:
-        print("This Program must run with root privileges, Exiting...")
+        print(f"{bcolors.FAIL}This Program must run with root privileges, Exiting...{bcolors.ENDC}")
         sys.exit()
 
 
@@ -149,7 +168,6 @@ def try_pmkid(iface, pcap_file, channel, ap):
                     if deauth_next.lower() == 'n':
                         print("Exiting..")
                         sys.exit(2)
-
                     return
 
             except:
@@ -202,7 +220,6 @@ def dropbox_uploader():
 
 
 if __name__ == '__main__':
-    is_root()
     print_banner()
     check_depends()
     iface, ap, client, channel, deauth_count, timeout, pcap_file, enable_upload = check_args()
