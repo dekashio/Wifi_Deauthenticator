@@ -147,7 +147,7 @@ def try_pmkid(iface, pcap_file, channel, ap):
                     deauth_next = str(input("Continue to Deauth attack?(y/n)"))
 
                     if deauth_next.lower() == 'n':
-                        print("EXITING")
+                        print("Exiting..")
                         sys.exit(2)
 
                     return
