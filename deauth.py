@@ -14,7 +14,6 @@ from scapy.layers.dot11 import Dot11Deauth, RadioTap, Dot11
 from scapy.layers.eap import EAPOL
 from scapy.sendrecv import sendp, sniff
 from scapy.utils import PcapWriter
-
 global pmkid_file
 
 
@@ -47,14 +46,12 @@ def is_process_running(processName):
                 return True
         except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
             return False
-
     return False
 
 
 def check_depends():
     # Check and exit
     is_root()
-
     for tool in NECESSARY_TOOLS:
         if shutil.which(tool) is None:
             print(f"{bcolors.FAIL}Can't find {tool} in PATH, Exiting..{bcolors.ENDC}")
@@ -161,7 +158,6 @@ def try_pmkid(iface, pcap_file, channel, ap):
         for packet in packets:
             try:
                 subtype = packet.wlan.fc_type_subtype.showname_value
-
                 if 'QoS Data' in subtype:
                     print(f"{bcolors.WARNING}Found PMKID: {packet.eapol.wlan_rsn_ie_pmkid.replace(':', '')}"
                           f"*{packet.wlan.sa.replace(':', '')}*{packet.wlan.da.replace(':', '')}{bcolors.ENDC}")
@@ -224,13 +220,13 @@ def dropbox_uploader():
 
 if __name__ == '__main__':
     print_banner()
+    print(f"{bcolors.HEADER}[*] Running...{bcolors.ENDC}")
     check_depends()
     iface, ap, client, channel, deauth_count, timeout, pcap_file, enable_upload = check_args()
     check_monitor(iface)
     pcap_file = os.path.splitext(pcap_file)[0] + '_' + datetime.now().strftime("%Y_%m_%d-%H-%M-%S") + '.pcap'  # Add
     # current time in the middle of pcap file name
     os.system(f"iwconfig {iface} channel {channel}")  # Set WiFi Adapter On right Channel
-    print(f"{bcolors.HEADER}[*] Running...{bcolors.ENDC}")
     try_pmkid(iface, pcap_file, channel, ap)
     t = threading.Thread(target=sniffer)  # Configure Sniffing in backgroud.
     t.start()  # Start Sniffing in the backgroud.
