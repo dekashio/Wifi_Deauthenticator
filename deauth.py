@@ -46,6 +46,7 @@ def check_depends():
         print("Can't find hcxpcapngtool in PATH, Exiting..")
         sys.exit()
 
+
 def check_monitor(iface):
     monitor = subprocess.check_output(f"iw dev {iface} info | grep type | cut -d ' ' -f 2", shell=True)
 
@@ -197,7 +198,7 @@ def dropbox_uploader():
                     except Exception as err:
                         print(f"{bcolors.FAIL}Failed to upload {file}\n{err}{bcolors.ENDC}")
     except IOError:
-        print(f"{bcolors.FAIL}Cant find " + DROPBOX_KEY_PATH + f" file. Skipping upload... {bcolors.ENDC}\n")
+        print(f"{bcolors.FAIL}Cant find {DROPBOX_KEY_PATH} file. Skipping upload... {bcolors.ENDC}\n")
 
 
 if __name__ == '__main__':
