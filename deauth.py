@@ -14,6 +14,7 @@ from scapy.layers.dot11 import Dot11Deauth, RadioTap, Dot11
 from scapy.layers.eap import EAPOL
 from scapy.sendrecv import sendp, sniff
 from scapy.utils import PcapWriter
+
 global pmkid_file
 
 
@@ -34,8 +35,9 @@ DEFAULT_NETWORK_INTERFACE = "wlan0"
 ENABLE_DROPBOX_UPLOAD = False
 PMKID_TIMEOUT = 10  # In seconds
 PACKET_LIST = []
-DISTURBING_PROCESSES=['wpa_supplicant','airodump-ng']
-NECESSARY_TOOLS=['cap2hccapx.bin','hcxdumptool','hcxpcapngtool']
+DISTURBING_PROCESSES = ['wpa_supplicant', 'airodump-ng']
+NECESSARY_TOOLS = ['cap2hccapx.bin', 'hcxdumptool', 'hcxpcapngtool']
+
 
 def is_process_running(processName):
     for proc in psutil.process_iter():
@@ -43,13 +45,13 @@ def is_process_running(processName):
             pinfo = proc.as_dict(attrs=['pid', 'name'])
             if processName.lower() in pinfo['name'].lower():
                 return True
-        except (psutil.NoSuchProcess, psutil.AccessDenied , psutil.ZombieProcess):
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
             return False
 
     return False
 
 
-def check_depends():  
+def check_depends():
     # Check and exit
     is_root()
 
@@ -57,12 +59,13 @@ def check_depends():
         if shutil.which(tool) is None:
             print(f"{bcolors.FAIL}Can't find {tool} in PATH, Exiting..{bcolors.ENDC}")
             sys.exit()
-    print (f"{bcolors.OKGREEN}Checking depends... OK!{bcolors.ENDC}"
-    
+    print(f"{bcolors.OKGREEN}Checking depends... OK!{bcolors.ENDC}")
     # Check and warn
     for proc in DISTURBING_PROCESSES:
         if is_process_running(proc):
-            print(f"{bcolors.WARNING}Warning! {proc} process\service is running! It is strongly recommended to terminate it to avoid collisions.{bcolors.ENDC}")
+            print(f"{bcolors.WARNING}Warning! {proc} Process or Service is running! It is strongly recommended to "
+                  f"terminate it to avoid collisions.{bcolors.ENDC}")
+
 
 def check_monitor(iface):
     monitor = subprocess.check_output(f"iw dev {iface} info | grep type | cut -d ' ' -f 2", shell=True)
@@ -85,7 +88,7 @@ def check_monitor(iface):
             print('Exiting..')
             sys.exit()
 
-    print (f"{bcolors.OKGREEN}Monitor mode... OK!{bcolors.ENDC}"
+    print(f"{bcolors.OKGREEN}Monitor mode... OK!{bcolors.ENDC}")
 
 
 def is_root():
@@ -236,7 +239,7 @@ if __name__ == '__main__':
     print(f"{bcolors.OKBLUE}Sent {deauth_count} Deauth Packet(s){bcolors.ENDC}")
     t.join()
     print(f"{bcolors.WARNING}Captured Total {len(PACKET_LIST)} EAPOL Packets{bcolors.ENDC}"'\n')
-    print(f"Packets Written to: {(os.getcwd()+'/'+pcap_file)}")
+    print(f"Packets Written to: {(os.getcwd() + '/' + pcap_file)}")
     cap_converter()  # Function that converts pcap to hashcat 22000 mode.
     if enable_upload:
         dropbox_uploader()  # Automatic hash uploader
