@@ -33,10 +33,9 @@ HS_TIMEOUT_AFTER_DEAUTH = 5  # In seconds
 DEFAULT_NETWORK_INTERFACE = "wlan0"
 ENABLE_DROPBOX_UPLOAD = False
 PMKID_TIMEOUT = 10  # In seconds
-
-packet_list = []
-disturbing_processes=['wpa_supplicant','airodump-ng']
-necessary_tools=['cap2hccapx.bin','hcxdumptool','hcxpcapngtool']
+PACKET_LIST = []
+DISTURBING_PROCESSES=['wpa_supplicant','airodump-ng']
+NECESSARY_TOOLS=['cap2hccapx.bin','hcxdumptool','hcxpcapngtool']
 
 def is_process_running(processName):
     for proc in psutil.process_iter():
@@ -50,21 +49,20 @@ def is_process_running(processName):
     return False
 
 
-def check_depends():
-    
+def check_depends():  
     # Check and exit
     is_root()
 
-    for tool in necessary_tools:
+    for tool in NECESSARY_TOOLS:
         if shutil.which(tool) is None:
             print(f"{bcolors.FAIL}Can't find {tool} in PATH, Exiting..{bcolors.ENDC}")
             sys.exit()
     print (f"{bcolors.OKGREEN}Checking depends... OK!{bcolors.ENDC}"
     
     # Check and warn
-    for proc in disturbing_processes:
+    for proc in DISTURBING_PROCESSES:
         if is_process_running(proc):
-            print(f"{bcolors.WARNING}Warning! {proc} process\service is running! It is strongly recommended to terminate him to avoid collisions.{bcolors.ENDC}")
+            print(f"{bcolors.WARNING}Warning! {proc} process\service is running! It is strongly recommended to terminate it to avoid collisions.{bcolors.ENDC}")
 
 def check_monitor(iface):
     monitor = subprocess.check_output(f"iw dev {iface} info | grep type | cut -d ' ' -f 2", shell=True)
@@ -168,9 +166,8 @@ def try_pmkid(iface, pcap_file, channel, ap):
                     deauth_next = str(input("Continue to Deauth attack?(y/n)"))
 
                     if deauth_next.lower() == 'n':
-                        print("EXITING")
+                        print("Exiting..")
                         sys.exit(2)
-
                     return
 
             except:
