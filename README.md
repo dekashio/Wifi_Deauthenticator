@@ -10,6 +10,6 @@ Automatic upload to DropBox
 
 Requirements:
 
-*hashcat-utils: https://github.com/hashcat/hashcat-utils.
-*hcxdumptool: https://github.com/ZerBea/hcxdumptool.
-*hcxtools: https://github.com/ZerBea/hcxtools.
+*hashcat-utils: https://github.com/hashcat/hashcat-utils  
+*hcxdumptool: https://github.com/ZerBea/hcxdumptool  
+*hcxtools: https://github.com/ZerBea/hcxtools  
