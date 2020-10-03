@@ -14,4 +14,4 @@ Requirements:
 *hcxdumptool: https://github.com/ZerBea/hcxdumptool V6.1.2 and up  
 *hcxtools: https://github.com/ZerBea/hcxtools V6.1.2 and up  
 
-# This tool is intended to work on Ubnutu / debian.
+# This tool is intended to work on Ubuntu / debian.
