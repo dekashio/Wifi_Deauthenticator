@@ -5,6 +5,8 @@ if [ "$EUID" -ne 0 ]
 fi
 echo "Enter WiFi device name to put in monitor mode: "
 read device
+systemctl stop wpa_supplicant.service
+systemctl mask wpa_supplicant.service
 ip link set $device down
 iw dev $device set type monitor
 ip link set $device up
