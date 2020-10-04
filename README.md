@@ -16,10 +16,10 @@ Requirements:
 
 Installation Instructions:
 
-git clone https://github.com/dekashio/Wifi_Deauthenticator
-cd into the folder
-chmod +x install_deps.sh
-sudo ./install_deps.sh
-sudo python3 deauth.py -h
-
+git clone https://github.com/dekashio/Wifi_Deauthenticator  
+cd into the folder  
+chmod +x install_deps.sh  
+sudo ./install_deps.sh  
+sudo python3 deauth.py -h  
+  
 # This tool is intended to work on Ubuntu / debian.
