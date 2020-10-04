@@ -10,4 +10,10 @@ systemctl restart wpa_supplicant.service
 ip link set $device down
 iw dev $device set type managed
 ip link set $device up
-echo $device "in managed mode"
+state=$(iw dev $device info | grep type | cut -d " " -f 2)
+state=$(echo -e "${state}" | tr -d '[:space:]')
+if [ "$state" == "managed" ]; then
+	echo $device "in managed mode"
+else
+	echo $device "not in managed mode"
+fi
