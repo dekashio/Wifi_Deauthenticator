@@ -14,4 +14,12 @@ Requirements:
 *hcxdumptool: https://github.com/ZerBea/hcxdumptool V6.1.2 and up  
 *hcxtools: https://github.com/ZerBea/hcxtools V6.1.2 and up  
 
+Installation Instructions:
+
+git clone https://github.com/dekashio/Wifi_Deauthenticator
+cd into the folder
+chmod +x install_deps.sh
+sudo ./install_deps.sh
+sudo python3 deauth.py -h
+
 # This tool is intended to work on Ubuntu / debian.
