@@ -10,4 +10,10 @@ systemctl mask wpa_supplicant.service
 ip link set $device down
 iw dev $device set type monitor
 ip link set $device up
-echo $device "in monitor mode"
+state=$(iw dev $device info | grep type | cut -d " " -f 2)
+state=$(echo -e "${state}" | tr -d '[:space:]')
+if [ "$state" == "monitor" ]; then
+	echo $device "in monitor mode"
+else
+	echo $device "not in monitor mode"
+fi
