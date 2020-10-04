@@ -145,11 +145,8 @@ def packethandler(pkt):
 def cap_converter():
     print('\n''Converting to hashcat 22000 format..''\n')
     hccapx_path = os.path.splitext(pcap_file)[0] + '.22000'
-    if shutil.which("cap2hccapx.bin") is not None:
-        subprocess.call(f"/usr/local/bin/cap2hccapx.bin {pcap_file} {hccapx_path}", shell=True)
-        print('\n')
-    else:
-        print(f"{bcolors.FAIL}can't find cap2hccapx.bin in PATH{bcolors.ENDC}\n")
+    subprocess.call(f"/usr/local/bin/cap2hccapx.bin {pcap_file} {hccapx_path}", shell=True)
+    print('\n')
 
 
 def try_pmkid(iface, pcap_file, channel, ap):
