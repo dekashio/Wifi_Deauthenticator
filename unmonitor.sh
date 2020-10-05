@@ -13,7 +13,7 @@ ip link set $device up
 state=$(iw dev $device info | grep type | cut -d " " -f 2)
 state=$(echo -e "${state}" | tr -d '[:space:]')
 if [ "$state" == "managed" ]; then
-	echo $device "in managed mode"
+	echo "Successfully put $device in managed mode"
 else
-	echo $device "not in managed mode"
+	echo "Failed to put $device in managed mode"
 fi
