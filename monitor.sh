@@ -13,7 +13,7 @@ ip link set $device up
 state=$(iw dev $device info | grep type | cut -d " " -f 2)
 state=$(echo -e "${state}" | tr -d '[:space:]')
 if [ "$state" == "monitor" ]; then
-	echo "succesfully turned $device to monitor mode"
+	echo "Successfully put $device in monitor mode"
 else
 	echo "Failed to put $device in monitor mode"
 fi
