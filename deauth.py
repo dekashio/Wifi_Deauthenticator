@@ -237,4 +237,4 @@ if __name__ == '__main__':
     if enable_upload:
         dropbox_uploader()  # Automatic hash uploader
     print(f"{bcolors.BGGREEN}Finished.{bcolors.ENDC}")
-    subprocess.call('echo -en "\e[?25h"', shell=True) # unhide bash cursor  
+    subprocess.call('echo "\e[?25h"', shell=True) # unhide bash cursor  
