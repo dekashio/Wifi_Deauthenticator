@@ -237,3 +237,4 @@ if __name__ == '__main__':
     if enable_upload:
         dropbox_uploader()  # Automatic hash uploader
     print(f"{bcolors.BGGREEN}Finished.{bcolors.ENDC}")
+    subprocess.call('reset', shell=True) # reset terminal 
