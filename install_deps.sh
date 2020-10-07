@@ -26,4 +26,4 @@ make -j $(nproc)
 make install
 cd $INSTALL_DIR
 #get python3 deps:
-pip3 install dropbox pyshark
+pip3 install dropbox pyshark scapy
