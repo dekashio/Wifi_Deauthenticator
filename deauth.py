@@ -14,6 +14,7 @@ from scapy.layers.dot11 import Dot11Deauth, RadioTap, Dot11
 from scapy.layers.eap import EAPOL
 from scapy.sendrecv import sendp, sniff
 from scapy.utils import PcapWriter
+
 global pmkid_file
 
 
@@ -61,11 +62,13 @@ def check_depends():
     for proc in DISTURBING_PROCESSES:
         if is_process_running(proc):
             if proc == "wpa_supplicant":
-                print(f"{bcolors.WARNING} Warning! {proc} is running! It is strongly recommended to terminate it to avoid collisions.{bcolors.ENDC}")
-                print(f"{bcolors.WARNING}To properly terminate {proc} run: systemctl stop {proc}.service followed by: systemctl mask {proc}.service{bcolors.ENDC}")
-                pass
-            print(f"{bcolors.WARNING}Warning! {proc} Process or Service is running! It is strongly recommended to "
-                  f"terminate it to avoid collisions.{bcolors.ENDC}")
+                print(f"{bcolors.WARNING}Warning! {proc} is running! It is strongly recommended to terminate it to "
+                      f"avoid collisions.{bcolors.ENDC}\n")
+                print(f"{bcolors.WARNING}To properly terminate {proc} run: systemctl stop {proc}.service followed by: "
+                      f"systemctl mask {proc}.service{bcolors.ENDC}\n")
+            else:
+                print(f"{bcolors.WARNING}Warning! {proc} Process or Service is running! It is strongly recommended to "
+                      f"terminate it to avoid collisions.{bcolors.ENDC}\n")
 
 
 def check_monitor(iface):
@@ -129,7 +132,7 @@ def check_args():
                         default=ENABLE_DROPBOX_UPLOAD, action="store_true", dest="enable_upload")
     results = parser.parse_args()
     return results.iface, results.ap, results.client, results.channel, results.deauth_count, \
-        results.timeout, results.pcap_file, results.enable_upload
+           results.timeout, results.pcap_file, results.enable_upload
 
 
 def sniffer():
@@ -241,4 +244,4 @@ if __name__ == '__main__':
     if enable_upload:
         dropbox_uploader()  # Automatic hash uploader
     print(f"{bcolors.BGGREEN}Finished.{bcolors.ENDC}")
-    subprocess.call('echo "\e[?25h"', shell=True) # unhide bash cursor  
+    subprocess.call('echo "\e[?25h"', shell=True)  # unhide bash cursor
