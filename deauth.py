@@ -35,7 +35,7 @@ ENABLE_DROPBOX_UPLOAD = False
 PMKID_TIMEOUT = 10  # In seconds
 PACKET_LIST = []
 DISTURBING_PROCESSES = ['wpa_supplicant', 'airodump-ng']
-NECESSARY_TOOLS = ['cap2hccapx.bin', 'hcxdumptool', 'hcxpcapngtool']
+NECESSARY_TOOLS = ['cap2hccapx.bin', 'hcxdumptool', 'hcxpcapngtool', 'tshark']
 
 
 def is_process_running(processName):
