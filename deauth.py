@@ -61,10 +61,10 @@ def check_depends():
     for proc in DISTURBING_PROCESSES:
         if is_process_running(proc):
             if proc == "wpa_supplicant":
-                print(f"{bcolors.WARNING} Warning! {proc} is running! It is strongly recommended to\ 
-                terminate it to avoid collisions.{bcolors.ENDC}")
-                print(f"To properly terminate {proc} run: systemctl stop {proc}.service\ 
-                followed by: systemctl mask {proc}.service")
+                print(f"{bcolors.WARNING} Warning! {proc} is running! It is strongly recommended to \ 
+                    terminate it to avoid collisions.{bcolors.ENDC}")
+                print(f"To properly terminate {proc} run: systemctl stop {proc}.service \ 
+                    followed by: systemctl mask {proc}.service")
             print(f"{bcolors.WARNING}Warning! {proc} Process or Service is running! It is strongly recommended to "
                   f"terminate it to avoid collisions.{bcolors.ENDC}")
 
