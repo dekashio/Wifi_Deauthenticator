@@ -51,6 +51,13 @@ def is_process_running(processName):
 
 
 def check_depends():
+    def _continue_anyway():
+        answer = input(f'{bcolors.WARNING}ARE YOU SURE THAT YOU WANT TO PROCEED?(y/n){bcolors.ENDC}')
+        if answer == 'y':
+            pass
+        else:
+            sys.exit(f'\n{bcolors.FAIL}Exiting..{bcolors.ENDC}')
+
     # Check and exit
     is_root()
     for tool in NECESSARY_TOOLS:
@@ -66,9 +73,11 @@ def check_depends():
                       f"avoid collisions.{bcolors.ENDC}\n")
                 print(f"{bcolors.WARNING}To properly terminate {proc} run: systemctl stop {proc}.service followed by: "
                       f"systemctl mask {proc}.service{bcolors.ENDC}\n")
+                _continue_anyway()
             else:
                 print(f"{bcolors.WARNING}Warning! {proc} Process or Service is running! It is strongly recommended to "
                       f"terminate it to avoid collisions.{bcolors.ENDC}\n")
+                _continue_anyway()
 
 
 def check_monitor(iface):
