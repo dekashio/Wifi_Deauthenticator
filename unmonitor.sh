@@ -3,7 +3,7 @@ if [ "$EUID" -ne 0 ]
   then echo "Please run as root"
   exit
 fi
-echo "Enter WiFi device name to put in managed mode: "
+echo "Enter WiFi device name to put into managed mode: "
 read device
 ip link set $device down
 iw dev $device set type managed
