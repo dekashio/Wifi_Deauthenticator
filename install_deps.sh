@@ -8,7 +8,7 @@ fi
 INSTALL_DIR=$(pwd)/
 
 #install os deps:
-apt install python3-pip git libcurl4-openssl-dev libssl-dev make tshark -qq -y
+apt install python3-pip git libcurl4-openssl-dev libssl-dev make tshark zlib1g-dev -qq -y
 #get tools sources from github, compile them  and install to PATH:
 git clone https://github.com/hashcat/hashcat-utils
 cd hashcat-utils/src/
