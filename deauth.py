@@ -81,13 +81,13 @@ def check_depends():
 
 
 def check_monitor(iface):
-    monitor = subprocess.check_output(f"iw dev {iface} info | grep type | cut -d ' ' -f 2", shell=True)
+    monitor = subprocess.check_output(f"iw dev {iface} info | grep type | awk '{{ print $2 }}'", shell=True)
 
     def _try_monitor():
         subprocess.call(f"ip link set {iface} down", shell=True)
         subprocess.call(f"iw dev {iface} set type monitor", shell=True)
         subprocess.call(f"ip link set {iface} up", shell=True)
-        if subprocess.check_output(f"iw dev {iface} info | grep type | cut -d ' ' -f 2", shell=True).decode() \
+        if subprocess.check_output(f"iw dev {iface} info | grep type | awk '{{ print $2 }}'", shell=True).decode() \
                 .strip() != "monitor":
             print(f"Failed to set {iface} monitor mode. Exiting..")
             sys.exit()
